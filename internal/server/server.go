@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"real_estate/internal/database"
 	"strconv"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
-
-	"real_estate/internal/database"
 )
 
 type Server struct {
@@ -23,7 +22,7 @@ func NewServer() *http.Server {
 	NewServer := &Server{
 		port: port,
 
-		db: database.New(),
+		db: database.Run(),
 	}
 
 	// Declare Server config
