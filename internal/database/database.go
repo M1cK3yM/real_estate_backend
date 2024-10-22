@@ -19,6 +19,9 @@ type Service interface {
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
 
+	GetAllProperties() []Property
+	GetProperty(id int64) (Property, error)
+	AddProperty(property Property) (Property, error)
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
@@ -83,6 +86,15 @@ func (s *service) Health() map[string]string {
 	stats["max_idle_closed"] = strconv.FormatInt(dbStats.MaxIdleClosed, 10)
 	stats["max_lifetime_closed"] = strconv.FormatInt(dbStats.MaxLifetimeClosed, 10)
 
+	queries := New(dbInstance.db)
+	clients, err := queries.ListClients(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stats["clients"] = strconv.Itoa(len(clients))
+
+	queries.CreateClient(context.Background(), CreateClientParams{FirstName: "Michael", LastName: "Harris", EmailAddress: "michael@me.com", PhoneNumber: "555-555-5555"})
 	// Evaluate stats to provide a health message
 	if dbStats.OpenConnections > 40 { // Assuming 50 is the max for this example
 		stats["message"] = "The database is experiencing heavy load."
@@ -101,6 +113,49 @@ func (s *service) Health() map[string]string {
 	}
 
 	return stats
+}
+
+func (s *service) GetAllProperties() []Property {
+	queries := New(s.db)
+	properties, err := queries.ListProperties(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return properties
+}
+
+func (s *service) GetProperty(id int64) (Property, error) {
+	queries := New(s.db)
+	property, err := queries.GetProperty(context.Background(), id)
+	if err != nil {
+		log.Print(err)
+		return Property{}, err
+	}
+
+	return property, nil
+}
+
+func (s *service) AddProperty(property Property) (Property, error) {
+	queries := New(s.db)
+	property, err := queries.CreateProperty(context.Background(), CreatePropertyParams{
+		AddressLine1:   property.AddressLine1,
+		AddressLine2:   property.AddressLine2,
+		City:           property.City,
+		Region:         property.Region,
+		PropertyTypeID: property.PropertyTypeID,
+		PropertySize:   property.PropertySize,
+		BlockSize:      property.BlockSize,
+		NumBedrooms:    property.NumBedrooms,
+		NumBathrooms:   property.NumBathrooms,
+		NumCarspaces:   property.NumCarspaces,
+		Description:    property.Description,
+	})
+	if err != nil {
+		log.Print(err)
+		return property, err
+	}
+	return property, nil
 }
 
 // Close closes the database connection.
