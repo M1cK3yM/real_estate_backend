@@ -833,13 +833,14 @@ func (q *Queries) ListPropertyTypes(ctx context.Context) ([]PropertyType, error)
 	return items, nil
 }
 
-const updateClient = `-- name: UpdateClient :exec
+const updateClient = `-- name: UpdateClient :one
 UPDATE client
 SET first_name = ?,
     last_name = ?,
     email_address = ?,
     phone_number = ?
 WHERE id = ?
+RETURNING id, first_name, last_name, email_address, phone_number
 `
 
 type UpdateClientParams struct {
@@ -850,15 +851,23 @@ type UpdateClientParams struct {
 	ID           int64
 }
 
-func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) error {
-	_, err := q.db.ExecContext(ctx, updateClient,
+func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) (Client, error) {
+	row := q.db.QueryRowContext(ctx, updateClient,
 		arg.FirstName,
 		arg.LastName,
 		arg.EmailAddress,
 		arg.PhoneNumber,
 		arg.ID,
 	)
-	return err
+	var i Client
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.EmailAddress,
+		&i.PhoneNumber,
+	)
+	return i, err
 }
 
 const updateContract = `-- name: UpdateContract :exec
@@ -1010,7 +1019,7 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 	return err
 }
 
-const updateProperty = `-- name: UpdateProperty :exec
+const updateProperty = `-- name: UpdateProperty :one
 UPDATE property
 SET address_line1 = ?,
     address_line2 = ?,
@@ -1024,6 +1033,7 @@ SET address_line1 = ?,
     num_carspaces = ?,
     description = ?
 WHERE id = ?
+RETURNING id, address_line1, address_line2, city, region, property_type_id, property_size, block_size, num_bedrooms, num_bathrooms, num_carspaces, description
 `
 
 type UpdatePropertyParams struct {
@@ -1041,8 +1051,8 @@ type UpdatePropertyParams struct {
 	ID             int64
 }
 
-func (q *Queries) UpdateProperty(ctx context.Context, arg UpdatePropertyParams) error {
-	_, err := q.db.ExecContext(ctx, updateProperty,
+func (q *Queries) UpdateProperty(ctx context.Context, arg UpdatePropertyParams) (Property, error) {
+	row := q.db.QueryRowContext(ctx, updateProperty,
 		arg.AddressLine1,
 		arg.AddressLine2,
 		arg.City,
@@ -1056,7 +1066,22 @@ func (q *Queries) UpdateProperty(ctx context.Context, arg UpdatePropertyParams) 
 		arg.Description,
 		arg.ID,
 	)
-	return err
+	var i Property
+	err := row.Scan(
+		&i.ID,
+		&i.AddressLine1,
+		&i.AddressLine2,
+		&i.City,
+		&i.Region,
+		&i.PropertyTypeID,
+		&i.PropertySize,
+		&i.BlockSize,
+		&i.NumBedrooms,
+		&i.NumBathrooms,
+		&i.NumCarspaces,
+		&i.Description,
+	)
+	return i, err
 }
 
 const updatePropertyType = `-- name: UpdatePropertyType :exec

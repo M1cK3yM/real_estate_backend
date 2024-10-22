@@ -14,7 +14,7 @@ INSERT INTO property (
 )
 RETURNING *;
 
--- name: UpdateProperty :exec
+-- name: UpdateProperty :one
 UPDATE property
 SET address_line1 = ?,
     address_line2 = ?,
@@ -27,7 +27,8 @@ SET address_line1 = ?,
     num_bathrooms = ?,
     num_carspaces = ?,
     description = ?
-WHERE id = ?;
+WHERE id = ?
+RETURNING *;
 
 -- name: DeleteProperty :exec
 DELETE FROM property
@@ -137,13 +138,14 @@ INSERT INTO client (
 )
 RETURNING *;
 
--- name: UpdateClient :exec
+-- name: UpdateClient :one
 UPDATE client
 SET first_name = ?,
     last_name = ?,
     email_address = ?,
     phone_number = ?
-WHERE id = ?;
+WHERE id = ?
+RETURNING *;
 
 -- name: DeleteClient :exec
 DELETE FROM client

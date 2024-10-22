@@ -22,6 +22,15 @@ type Service interface {
 	GetAllProperties() []Property
 	GetProperty(id int64) (Property, error)
 	AddProperty(property Property) (Property, error)
+	UpdateProperty(property Property) (Property, error)
+	DeleteProperty(id int64) error
+
+	GetAllClients() []Client
+	GetClient(id int64) (Client, error)
+	AddClient(property Client) (Client, error)
+	UpdateClient(property Client) (Client, error)
+	DeleteClient(id int64) error
+
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
@@ -156,6 +165,106 @@ func (s *service) AddProperty(property Property) (Property, error) {
 		return property, err
 	}
 	return property, nil
+}
+
+func (s *service) UpdateProperty(property Property) (Property, error) {
+	queries := New(s.db)
+
+	property, err := queries.UpdateProperty(context.Background(), UpdatePropertyParams{
+		ID:             property.ID,
+		AddressLine1:   property.AddressLine1,
+		AddressLine2:   property.AddressLine2,
+		City:           property.City,
+		Region:         property.Region,
+		PropertyTypeID: property.PropertyTypeID,
+		PropertySize:   property.PropertySize,
+		BlockSize:      property.BlockSize,
+		NumBedrooms:    property.NumBedrooms,
+		NumBathrooms:   property.NumBathrooms,
+		NumCarspaces:   property.NumCarspaces,
+		Description:    property.Description,
+	})
+	if err != nil {
+		log.Print(err)
+		return property, err
+	}
+
+	return property, nil
+}
+
+func (s *service) DeleteProperty(id int64) error {
+	queries := New(s.db)
+
+	err := queries.DeleteProperty(context.Background(), id)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
+}
+
+func (s *service) GetAllClients() []Client {
+	queries := New(s.db)
+	users, err := queries.ListClients(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return users
+}
+
+func (s *service) GetClient(id int64) (Client, error) {
+	queries := New(s.db)
+	property, err := queries.GetClient(context.Background(), id)
+	if err != nil {
+		log.Print(err)
+		return Client{}, err
+	}
+
+	return property, nil
+}
+
+func (s *service) AddClient(client Client) (Client, error) {
+	queries := New(s.db)
+	client, err := queries.CreateClient(context.Background(), CreateClientParams{
+		FirstName:    client.FirstName,
+		LastName:     client.LastName,
+		EmailAddress: client.EmailAddress,
+		PhoneNumber:  client.PhoneNumber,
+	})
+	if err != nil {
+		log.Print(err)
+		return client, err
+	}
+	return client, nil
+}
+
+func (s *service) UpdateClient(client Client) (Client, error) {
+	queries := New(s.db)
+
+	client, err := queries.UpdateClient(context.Background(), UpdateClientParams{
+		FirstName:    client.FirstName,
+		LastName:     client.LastName,
+		EmailAddress: client.EmailAddress,
+		PhoneNumber:  client.PhoneNumber,
+	})
+	if err != nil {
+		log.Print(err)
+		return client, err
+	}
+
+	return client, nil
+}
+
+func (s *service) DeleteClient(id int64) error {
+	queries := New(s.db)
+
+	err := queries.DeleteClient(context.Background(), id)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
 }
 
 // Close closes the database connection.
