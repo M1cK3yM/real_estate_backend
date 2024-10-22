@@ -22,11 +22,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e.PUT("/properties", s.updatePropertyHandler)
 	e.DELETE("/properties", s.deletePropertyHandler)
 
-	e.GET("/users", s.getAllUsersHandler)
-	e.GET("/users/q", s.getUserHandler)
-	e.POST("/users", s.addUserHandler)
-	e.PUT("/users", s.updateUserHandler)
-	e.DELETE("/users", s.deleteUserHanlder)
+	e.GET("/clients", s.getAllClientsHandler)
+	e.GET("/clients/q", s.getClientHandler)
+	e.POST("/clients", s.addClientHandler)
+	e.PUT("/clients", s.updateClientHandler)
+	e.DELETE("/clients", s.deleteClientHanlder)
 
 	return e
 }
